@@ -19,7 +19,7 @@ void setUp(void){
 void tearDown(void){
 }
 
-// Despues de la inicializacion del sistema la cantidad e muestras debe ser 0
+// Despues de la inicializacion del sistema la cantidad de muestras debe ser 0
 void test_NmeasureInit(void){
     TEST_ASSERT_EQUAL_INT(muestra_test.nmeasure, muestra.nmeasure); // compruebo la cantidad de muestras es cero
 }
@@ -72,7 +72,6 @@ void test_LastMeasureState(void){
     extract_measurement(&muestra);
     TEST_ASSERT_EQUAL_INT(muestra_test.state, muestra.state); //compruebo que el estado sea Full
 }
-
 
 // Las muestras extraídas se deben convertir a valores de corriente
 void test_ConvertMeasureData(void){
