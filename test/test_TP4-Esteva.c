@@ -1,9 +1,16 @@
 #include "unity.h"
 #include "TP4-Esteva.h"
+#include "ADC.h"
+#include "mock_ADC.h"
 
-#define MAX_VALUE_TEST  (ADC_LECTURE_TEST * CURRENTSCALE)
-#define MIN_VALUE_TEST  (ADC_LECTURE_TEST * CURRENTSCALE)
-#define AVG_VALUE_TEST  (ADC_LECTURE_TEST * CURRENTSCALE)
+int ADC_LECTURE_TEST = 40;
+
+int ADC_DATA[NDATA] = {6,1,3,4,5,6,3,8,9,15};
+
+// Valores extraidos con la funcion de python Calculos.py (redondeados)
+#define MAX_VALUE_TEST  29
+#define MIN_VALUE_TEST  1
+#define AVG_VALUE_TEST  11
 
 extern sensor_data_t muestra;
 extern current_data_t corriente;
@@ -14,9 +21,6 @@ void setUp(void){
     muestra_test.nmeasure = 0;
     measurementInit();
     muestra_test.state = Empty;
-}
-
-void tearDown(void){
 }
 
 // Despues de la inicializacion del sistema la cantidad de muestras debe ser 0
@@ -31,13 +35,15 @@ void test_MeasureStateInit(void){
 // Al iniciar una medicion, el estado debe pasa a Reading
 void test_FirstMeasureState(void){
     muestra_test.state = Reading;
+    adcLecture_ExpectAndReturn(SENSOR_ID,ADC_DATA[0]*ADC_LECTURE_TEST);
     extract_measurement(&muestra);
     TEST_ASSERT_EQUAL_INT(muestra_test.state, muestra.state); //compruebo que el estado es leyendo
 }
 
 // El primer dato extraido se debe almacenar en muestra.data[0]
 void test_FirstMeasureData(void){
-    muestra_test.data[0] = ADC_LECTURE_TEST;
+    adcLecture_ExpectAndReturn(SENSOR_ID,ADC_DATA[2]*ADC_LECTURE_TEST);
+    muestra_test.data[0] = ADC_DATA[2]*ADC_LECTURE_TEST;
     extract_measurement(&muestra);
     TEST_ASSERT_EQUAL_INT(muestra_test.data[0], muestra.data[0]); //compruebo que el primer dato leído sea correcto
 }
@@ -45,6 +51,7 @@ void test_FirstMeasureData(void){
 // AL finalizar la primera extracion del dato, se debe actualizar la variable nmeasure (número de medicion)
 void test_NMeasureUpdate(void){
     muestra_test.nmeasure = 1;
+    adcLecture_ExpectAndReturn(SENSOR_ID,ADC_DATA[1]);
     extract_measurement(&muestra);
     TEST_ASSERT_EQUAL_INT(muestra_test.nmeasure, muestra.nmeasure); //compruebo que aumenta el número de muestras
 }
@@ -54,11 +61,14 @@ void test_NDATAMeasureExtract(void){
     int i; // indice para recorrer los for
     // Se generan las NDAta muestras del test
     for (i = 0; i < NDATA; i++){
-        muestra_test.data[i] = ADC_LECTURE_TEST;
+        muestra_test.data[i] = ADC_DATA[i]*ADC_LECTURE_TEST;
     }
-    muestra.nmeasure = 0; // se inicializa el indez de muestras
+    muestra_test.nmeasure = NDATA;
+    muestra_test.state = Full;
+    muestra.nmeasure = 0; // se inicializa el index de muestras
     // Se extraen las NDATA muestras
     for (i = 0; i < NDATA; i++){
+        adcLecture_ExpectAndReturn(SENSOR_ID,ADC_DATA[i]*ADC_LECTURE_TEST);
         extract_measurement(&muestra);
     }
     TEST_ASSERT_EQUAL_INT_ARRAY(muestra_test.data, muestra.data,NDATA); //comparo los array de NDATA muestras
@@ -66,10 +76,6 @@ void test_NDATAMeasureExtract(void){
 
 // Una vez que se extraen NDATA muestras, el estado debe pasar a Full
 void test_LastMeasureState(void){
-    muestra_test.nmeasure = NDATA;
-    muestra_test.state = Full;
-    muestra.nmeasure = NDATA - 1;
-    extract_measurement(&muestra);
     TEST_ASSERT_EQUAL_INT(muestra_test.state, muestra.state); //compruebo que el estado sea Full
 }
 

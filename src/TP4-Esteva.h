@@ -8,9 +8,10 @@
 
 
 /*==================[inclusions]=============================================*/
-
+#include "ADC.h"
 
 /*==================[macros]=================================================*/
+#define CH1				8 // adc input
 #define SENSOR_ID		CH1 // adc input
 #define NDATA			10
 #define SAMPLETIME		1 //ms
@@ -22,7 +23,6 @@
 enum sensor_state{ Empty ,Reading , Full ,Processing ,DataProcessed , Error , Sending};
 
 
-#define ADC_LECTURE_TEST    40
 /*==================[typedef]================================================*/
 
 typedef struct{
@@ -33,15 +33,14 @@ typedef struct{
 
 
 typedef struct{
-	float current_value[NDATA];
-	float average;
-	float max_value;
-	float min_value;
+	int current_value[NDATA];
+	int average;
+	int max_value;
+	int min_value;
 }current_data_t;
 
 /*==================[external functions declaration]=========================*/
 
-void SensorInit();
 void measurementInit();
 void get_data (sensor_data_t* );
 void extract_measurement(sensor_data_t* );
